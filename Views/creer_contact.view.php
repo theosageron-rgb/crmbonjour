@@ -76,9 +76,8 @@
       <i class="bi bi-person-lines-fill me-2"></i>Créer une fiche contact
     </h2>
 
-    <form action="save.php" method="POST">
-
-      <!-- SECTION 1 : IDENTITÉ -->
+    <form action="index.php?page=creer_contact" method="POST">
+      <!-- le reste inchangé -->
       <div class="section-title">Informations personnelles</div>
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -102,7 +101,6 @@
         </div>
       </div>
 
-      <!-- SECTION 2 : PRO -->
       <div class="form-section">
         <div class="section-title">Informations professionnelles</div>
         <div class="row">
@@ -138,7 +136,6 @@
         </div>
       </div>
 
-      <!-- SECTION 3 : NOTES -->
       <div class="form-section">
         <div class="section-title">Notes et remarques</div>
         <div class="mb-3">
@@ -147,21 +144,14 @@
         </div>
       </div>
 
-      <!-- BOUTONS -->
       <div class="d-grid mt-4">
         <button type="submit" class="btn btn-primary py-2">
           <i class="bi bi-save me-1"></i> Enregistrer la fiche
         </button>
       </div>
-
-      <div class="text-center mt-3">
-        <a href="list.php" class="btn btn-outline-secondary w-100">
-          <i class="bi bi-card-list me-1"></i> Voir toutes les fiches
-        </a>
-      </div>
-
     </form>
   </div>
 
 </body>
 </html>
+

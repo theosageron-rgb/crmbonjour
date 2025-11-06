@@ -1,3 +1,4 @@
+<?php include __DIR__ . '/../sidebar.php'; ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -34,7 +35,8 @@
     .card-stat p { color: #94a3b8; font-size: 0.95rem; margin-top: 0.5rem; }
     .table { background: rgba(255,255,255,0.05); color: #e2e8f0; border-radius: 12px; overflow: hidden; }
     thead { background-color: rgba(255,255,255,0.08); }
-    tr:hover { background-color: rgba(255,255,255,0.1); }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background-color: rgba(255,255,255,0.1); }
     .badge { border-radius: 6px; padding: 0.4rem 0.6rem; font-size: 0.85rem; }
     .badge.Prospect { background-color: #f59e0b; color: white; }
     .badge.En\ cours { background-color: #3b82f6; color: white; }
@@ -44,20 +46,19 @@
 </head>
 
 <body>
-  <?php include 'sidebar.php'; ?>
-
   <div class="container">
     <header>
       <h2 class="fw-bold text-light">Tableau de bord</h2>
-      <a href="index.php?page=fiche" class="btn btn-primary">+ Nouvelle fiche</a>
+      <!-- ✅ Lien correct (via front controller) -->
+      <a href="index.php?page=creer_contact" class="btn btn-primary">+ Nouvelle fiche</a>
     </header>
 
     <div class="row text-center g-4 mb-4">
-      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['total_clients'] ?></h3><p>Total clients</p></div></div>
-      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['prospects'] ?></h3><p>Prospects</p></div></div>
-      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['encours'] ?></h3><p>En cours</p></div></div>
-      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['gagnes'] ?></h3><p>Gagnés</p></div></div>
-      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['perdus'] ?></h3><p>Perdus</p></div></div>
+      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['total_clients'] ?? 0 ?></h3><p>Total clients</p></div></div>
+      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['prospects'] ?? 0 ?></h3><p>Prospects</p></div></div>
+      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['encours'] ?? 0 ?></h3><p>En cours</p></div></div>
+      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['gagnes'] ?? 0 ?></h3><p>Gagnés</p></div></div>
+      <div class="col-md-2"><div class="card-stat"><h3><?= $stats['perdus'] ?? 0 ?></h3><p>Perdus</p></div></div>
     </div>
 
     <div class="row g-4 mb-5">
@@ -71,31 +72,41 @@
         <tr><th>Nom</th><th>Email</th><th>Profession</th><th>Statut</th></tr>
       </thead>
       <tbody>
-        <?php while ($fiche = $dernieres_fiches->fetch_assoc()): ?>
-          <tr onclick="window.location.href='index.php?page=fiche&id=<?= $fiche['id'] ?>'">
-            <td><?= htmlspecialchars($fiche['prenom'].' '.$fiche['nom']) ?></td>
-            <td><?= htmlspecialchars($fiche['email']) ?></td>
-            <td><?= htmlspecialchars($fiche['profession']) ?></td>
-            <td><span class="badge <?= htmlspecialchars($fiche['statut']) ?>"><?= htmlspecialchars($fiche['statut']) ?></span></td>
-          </tr>
-        <?php endwhile; ?>
+        <?php if (!empty($dernieres_fiches) && $dernieres_fiches->num_rows > 0): ?>
+          <?php while ($fiche = $dernieres_fiches->fetch_assoc()): ?>
+            <tr onclick="window.location.href='index.php?page=fiche&id=<?= $fiche['id'] ?>'">
+              <td><?= htmlspecialchars($fiche['prenom'].' '.$fiche['nom']) ?></td>
+              <td><?= htmlspecialchars($fiche['email']) ?></td>
+              <td><?= htmlspecialchars($fiche['profession']) ?></td>
+              <td><span class="badge <?= htmlspecialchars($fiche['statut']) ?>"><?= htmlspecialchars($fiche['statut']) ?></span></td>
+            </tr>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <tr><td colspan="4" class="text-center text-muted py-4">Aucune fiche récente.</td></tr>
+        <?php endif; ?>
       </tbody>
     </table>
   </div>
 
   <script>
-    const dataPipeline = {
-      labels: ['Prospects', 'En cours', 'Gagnés', 'Perdus'],
-      datasets: [{
-        data: [<?= $stats['prospects'] ?>, <?= $stats['encours'] ?>, <?= $stats['gagnes'] ?>, <?= $stats['perdus'] ?>],
-        backgroundColor: ['#f59e0b','#3b82f6','#16a34a','#dc2626'],
-        hoverOffset: 15,
-      }]
+    // Données sécurisées avec valeurs par défaut
+    const stats = {
+      prospects: <?= (int)($stats['prospects'] ?? 0) ?>,
+      encours:   <?= (int)($stats['encours'] ?? 0) ?>,
+      gagnes:    <?= (int)($stats['gagnes'] ?? 0) ?>,
+      perdus:    <?= (int)($stats['perdus'] ?? 0) ?>,
     };
 
     new Chart(document.getElementById('pipelineChart'), {
       type: 'doughnut',
-      data: dataPipeline,
+      data: {
+        labels: ['Prospects', 'En cours', 'Gagnés', 'Perdus'],
+        datasets: [{
+          data: [stats.prospects, stats.encours, stats.gagnes, stats.perdus],
+          backgroundColor: ['#f59e0b','#3b82f6','#16a34a','#dc2626'],
+          hoverOffset: 15,
+        }]
+      },
       options: {
         plugins: {
           legend: { labels: { color: '#fff' } },
@@ -105,19 +116,17 @@
       }
     });
 
-    const dataMonthly = {
-      labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-      datasets: [{
-        label: 'Clients gagnés',
-        data: [1, 2, 4, 3, 5, <?= $stats['gagnes'] ?>],
-        backgroundColor: '#3b82f6',
-        borderRadius: 8
-      }]
-    };
-
     new Chart(document.getElementById('monthlyChart'), {
       type: 'bar',
-      data: dataMonthly,
+      data: {
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+        datasets: [{
+          label: 'Clients gagnés',
+          data: [1, 2, 4, 3, 5, stats.gagnes],
+          backgroundColor: '#3b82f6',
+          borderRadius: 8
+        }]
+      },
       options: {
         plugins: {
           legend: { labels: { color: '#fff' } },
@@ -132,3 +141,4 @@
   </script>
 </body>
 </html>
+

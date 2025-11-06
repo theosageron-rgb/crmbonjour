@@ -1,24 +1,6 @@
-<?php
-include __DIR__ . '/Config/config.php';
-date_default_timezone_set('Europe/Paris');
+<?php include __DIR__ . '/../sidebar.php'; ?>
+<?php function h($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');} ?>
 
-$today = date('Y-m-d');
-
-$stmt = $conn->prepare("
-  SELECT t.*, f.prenom, f.nom
-  FROM taches t
-  JOIN fiches f ON t.fiche_id = f.id
-  WHERE t.date_echeance = ?
-  ORDER BY t.date_creation DESC
-");
-$stmt->bind_param("s", $today);
-$stmt->execute();
-$res = $stmt->get_result();
-$taches = $res->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
-
-function h($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
-?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -30,34 +12,36 @@ function h($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 
 <style>
 :root {
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --border: #e5e7eb;
-  --text: #111827;
-  --muted: #6b7280;
-  --primary: #2563eb;
-  --success: #16a34a;
+  --bg: #0b1020;
+  --bg2: #10172a;
+  --card: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.1);
+  --text: #e5e7eb;
+  --muted: #9aa4b2;
+  --accent: #3b82f6;
+  --accent2: #0ea5e9;
+  --success: #10b981;
   --warning: #f59e0b;
-  --danger: #dc2626;
+  --danger: #ef4444;
 }
 
 body {
-  background: var(--bg);
+  background: radial-gradient(900px at 80% 10%, rgba(59,130,246,.25), transparent 60%) ,
+              linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
   color: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* HEADER */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(10,16,35,0.7);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
 .topbar .inner {
   max-width: 1100px;
@@ -77,34 +61,35 @@ body {
   border-radius: 8px;
   transition: all .2s;
   font-weight: 500;
+  background: transparent;
 }
 .btn-ghost:hover {
-  background: var(--primary);
+  background: var(--accent);
   color: #fff;
-  border-color: var(--primary);
+  border-color: var(--accent);
 }
 
-/* PANEL */
 .wrap {
   max-width: 1100px;
   margin: 40px auto;
   padding: 0 16px;
 }
+
 .panel {
   border-radius: 16px;
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   padding: 28px;
+  backdrop-filter: blur(12px);
 }
 
-/* TASK CARD */
 .task-card {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 18px;
   margin-bottom: 14px;
-  background: #fff;
+  background: rgba(255,255,255,0.03);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -112,9 +97,10 @@ body {
 }
 .task-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
-  border-color: var(--primary);
+  border-color: var(--accent2);
+  background: rgba(255,255,255,0.06);
 }
+
 .task-info strong {
   font-size: 1rem;
   color: var(--text);
@@ -123,28 +109,30 @@ body {
   color: var(--muted);
 }
 
-/* STATUS */
 .status-badge {
   border-radius: 999px;
-  padding: .3rem .7rem;
+  padding: .35rem .8rem;
   font-size: .8rem;
   font-weight: 600;
   text-transform: capitalize;
+  border: 1px solid transparent;
 }
 .status-en-attente {
-  background: #eef2ff;
-  color: #3730a3;
+  background: rgba(59,130,246,0.15);
+  color: var(--accent2);
+  border-color: rgba(59,130,246,0.3);
 }
 .status-en-cours {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245,158,11,0.15);
+  color: var(--warning);
+  border-color: rgba(245,158,11,0.3);
 }
 .status-terminée {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16,185,129,0.15);
+  color: var(--success);
+  border-color: rgba(16,185,129,0.3);
 }
 
-/* BUTTON CLOSE */
 .btn-close-task {
   background: transparent;
   border: 1px solid var(--success);
@@ -159,8 +147,6 @@ body {
   background: var(--success);
   color: #fff;
 }
-
-/* EMPTY STATE */
 .empty {
   text-align: center;
   padding: 60px 20px;
@@ -168,27 +154,23 @@ body {
 }
 .empty i {
   font-size: 3rem;
-  opacity: .3;
+  opacity: .25;
   display: block;
   margin-bottom: 12px;
 }
 
-/* TOAST */
 .toast {
-  background: var(--primary);
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: fadeIn .4s ease;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
-
-/* SMOOTH ENTRY */
 .fade-up {
   animation: fadeUp .5s ease forwards;
   opacity: 0;
@@ -203,9 +185,9 @@ body {
 <body>
   <div class="topbar">
     <div class="inner">
-      <a href="pipeline.php" class="btn btn-sm btn-ghost"><i class="bi bi-kanban"></i> Pipeline</a>
+      <a href="index.php?page=pipeline" class="btn btn-sm btn-ghost"><i class="bi bi-kanban"></i> Pipeline</a>
       <h5 class="m-0"><i class="bi bi-calendar2-event me-2"></i>Tâches du <?= date('d/m/Y') ?></h5>
-      <a href="dashboard.php" class="btn btn-sm btn-ghost"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+      <a href="index.php?page=dashboard" class="btn btn-sm btn-ghost"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
     </div>
   </div>
 
@@ -265,7 +247,7 @@ body {
       btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
       btn.disabled = true;
 
-      const res = await fetch('update_tache.php', {
+      const res = await fetch('index.php?page=update_tache', {
         method: 'POST',
         headers: {'Content-Type':'application/x-www-form-urlencoded'},
         body: 'id=' + id
@@ -288,5 +270,4 @@ body {
   </script>
 </body>
 </html>
-
 

@@ -1,19 +1,9 @@
-<?php
-include __DIR__ . '/Config/config.php';
-include 'sidebar.php';
-
-// Vérifie la connexion
-if ($conn->connect_error) {
-  die("Erreur de connexion : " . $conn->connect_error);
-}
-
-$result = $conn->query("SELECT * FROM fiches ORDER BY id DESC");
-?>
+<?php include __DIR__ . '/../sidebar.php'; ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Tableau de bord - CRM</title>
+  <title>Fiches enregistrées | Ordex CRM</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
@@ -58,21 +48,10 @@ $result = $conn->query("SELECT * FROM fiches ORDER BY id DESC");
 </head>
 
 <body>
-  <!-- Barre latérale -->
-  <div class="sidebar">
-    <h3>ORD<span style="color:#0d6efd;">EX</span></h3>
-    <a href="#">🏠 Tableau de bord</a>
-    <a href="pipeline.php">👥 Clients</a>
-    <a href="#">📇 Contacts</a>
-    <a href="#">🗓️ Agenda</a>
-    <a href="#">✉️ Mails</a>
-  </div>
-
-  <!-- Contenu principal -->
   <div class="main">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Fiches enregistrées</h2>
-      <a href="index.php" class="btn btn-primary">+ Ajouter une fiche</a>
+      <a href="index.php?page=creer_contact" class="btn btn-primary">+ Ajouter une fiche</a>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
@@ -80,15 +59,23 @@ $result = $conn->query("SELECT * FROM fiches ORDER BY id DESC");
     <?php endif; ?>
 
     <div class="row">
-      <?php while ($row = $result->fetch_assoc()): ?>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm p-3">
-            <h5><?= htmlspecialchars($row['prenom']) . ' ' . htmlspecialchars($row['nom']) ?></h5>
-            <p><b>Email :</b> <?= htmlspecialchars($row['email']) ?></p>
-            <p><b>Profession :</b> <?= htmlspecialchars($row['profession']) ?></p>
+      <?php if ($fiches && $fiches->num_rows > 0): ?>
+        <?php while ($row = $fiches->fetch_assoc()): ?>
+          <div class="col-md-4 mb-3">
+            <div class="card shadow-sm p-3">
+              <h5>
+                <a href="index.php?page=fiche&id=<?= (int)$row['id'] ?>" class="text-decoration-none text-dark">
+                  <?= htmlspecialchars($row['prenom']) . ' ' . htmlspecialchars($row['nom']) ?>
+                </a>
+              </h5>
+              <p><b>Email :</b> <?= htmlspecialchars($row['email']) ?></p>
+              <p><b>Profession :</b> <?= htmlspecialchars($row['profession']) ?></p>
+            </div>
           </div>
-        </div>
-      <?php endwhile; ?>
+        <?php endwhile; ?>
+      <?php else: ?>
+        <p class="text-center text-muted">Aucune fiche enregistrée pour le moment.</p>
+      <?php endif; ?>
     </div>
   </div>
 </body>
